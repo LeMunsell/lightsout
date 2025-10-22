@@ -1,0 +1,64 @@
+plugins {
+    id 'java'
+    id 'eclipse'
+    id 'maven-publish'
+    id 'net.minecraftforge.gradle' version '6.0.+' // Forge Gradle plugin
+}
+
+// Apply version and group from gradle.properties
+version = mod_version
+group = mod_group
+
+java {
+    // Use Java 17 toolchain
+    toolchain { languageVersion = JavaLanguageVersion.of(17) }
+    withSourcesJar()
+}
+
+repositories {
+    mavenCentral()
+    // Forge Maven
+    maven { name = 'Forge'; url = 'https://maven.minecraftforge.net' }
+    // Plasmo Voice API
+    maven { name = 'plasmoverse-releases'; url = 'https://repo.plasmoverse.com/releases' }
+    // TarsosDSP repository
+    maven { name = 'TarsosDSP repository'; url = 'https://mvn.0110.be/releases' }
+}
+
+dependencies {
+    // Minecraft Forge dependency
+    minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
+    // Plasmo Voice server API – compileOnly because the API is provided by the server mod at runtime
+    compileOnly "su.plo.voice.api:server:2.0.0"
+    // TarsosDSP for audio DSP (pitch shift, filters, etc.)
+    implementation 'be.tarsos.dsp:core:2.5'
+    implementation 'be.tarsos.dsp:jvm:2.5'
+}
+
+minecraft {
+    mappings channel: 'official', version: minecraft_version
+    runs {
+        // Configure a server run task for development
+        server {
+            workingDirectory project.file('run')
+            args '--nogui'
+            mods {
+                lightsout {
+                    source sourceSets.main
+                }
+            }
+        }
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+        }
+    }
+}
